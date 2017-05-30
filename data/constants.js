@@ -1,6 +1,12 @@
-const VALID_PARTIES = {
+const MAJOR_PARTIES = {
 	'R': true,
 	'D': true
+};
+
+const PARTY_AFFILIATIONS = {
+	'DFL': 'D',
+	'DNL': 'D',
+	'WF': 'D'
 };
 
 const VALID_STATES = {
@@ -57,6 +63,7 @@ const VALID_STATES = {
 };
 
 module.exports = {
-	VALID_PARTIES,
+	MAJOR_PARTIES,
+	PARTY_AFFILIATIONS,
 	VALID_STATES
 };

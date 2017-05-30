@@ -1,11 +1,18 @@
 const fs = require('fs');
 const parse = require('csv-parse');
 const transform = require('stream-transform');
+const d3Collection = require('d3-collection');
+const {
+	nest
+} = d3Collection;
+
 const constants = require('./constants');
 const {
-	VALID_PARTIES,
+	MAJOR_PARTIES,
+	PARTY_AFFILIATIONS,
 	VALID_STATES
 } = constants;
+
 
 const dataFile = process.argv[2],
 	candidates = [],
@@ -26,7 +33,7 @@ const transformer = transform(row => {
 		votes = row['GENERAL VOTES '],
 		state = row['STATE ABBREVIATION'];
 
-	if (votes /*&& VALID_PARTIES[party] */&& VALID_STATES[state]) {
+	if (votes && VALID_STATES[state]) {
 		const district = row['D'].substr(0, 2);
 
 		// TODO: vv fix this case vv
@@ -38,7 +45,7 @@ const transformer = transform(row => {
 			party,
 			name: row['CANDIDATE NAME'],
 			votes: +votes.replace(',', ''),
-			pct: +(row['GENERAL %'].replace('%')) / 100,
+			pct: +(row['GENERAL %'].replace('%', '')) / 100,
 			incumbent: !!row['(I)'],
 			won: !!row['GE WINNER INDICATOR']
 		};
@@ -51,18 +58,60 @@ fs.createReadStream(dataFile)
 	.pipe(parser)
 	.pipe(transformer)
 	.on('finish', () => {
-		cleanData();
+		cleanAndReduce();
 		calculateMetrics();
 	});
 
-function cleanData () {
+function cleanAndReduce () {
+	states = nest()
+		.key(c => c.state)
+		.key(c => c.district)
+		.rollup(districtList => {
+			// vv vv vv
+			// TODO: ensure at least one winner per district (HI D-01)
+			// ^^ ^^ ^^
+			return districtList;
+		})
+		.key(c => c.name)
+		.rollup(nameList => {
+			// only return one entry per name
+			if (nameList.length === 1) {
+				return nameList[0];
+			} else {
+				// aggregate all votes for a candidate across parties
+				// down to a single major party, if it exists
+				let majorCandidate = nameList.find(c => {
+					MAJOR_PARTIES[c.party] ||
+					MAJOR_PARTIES[PARTY_AFFILIATIONS[c.party]]
+				});
+				if (!majorCandidate) {
+					// if no major party affiliation, use the entry
+					// with the most votes to determine party
+					majorCandidate = nameList.sort((a, b) => b.votes - a.votes)[0];
+				}
+				// keep track of all non-major parties for this candidate
+				majorCandidate.otherParties = nameList.reduce((acc, c) => c !== majorCandidate ? acc.concat(c.party) : acc, []);
+				// aggregate all votes across parties for this candidate,
+				// but do not double-count votes in case two entries for same name + party
+				majorCandidate.votes += nameList.reduce((acc, c) => c.party !== majorCandidate.party ? acc + c.votes : acc, 0);
+				return majorCandidate;
+			}
 
+		})
+		.entries(candidates);
+
+	// TODO NEXT:
+	// reduce to flat array in calculateMetrics
+	// that just has winner counts per state
+	// and then calc optimalNumRepsD and popularRepresentationDelta from there
+
+	debugger;
 }
 
 function calculateMetrics () {
 
 	//
-	// TODO: don't tally votes, use totals from FEC data
+	// TODO: don't tally votes, use totals from FEC data ("District Votes")
 	// (actually, just use reported percentages)
 	//
 
@@ -85,7 +134,7 @@ function calculateMetrics () {
 
 		let {party} = candidate;
 		if (candidate.won) {
-			if (VALID_PARTIES[party]) {
+			if (MAJOR_PARTIES[party]) {
 				state[`reps${party}`]++;
 			} else {
 				state['repsOther']++;

@@ -15,4 +15,5 @@
 	(look for candidates with same name who also won)
 - [ ] use percentages instead of summing vote counts,
 	if avail across all elections (might not be!)
+	(could also use "District Votes marker in [TOTAL VOTES] column")
 - [ ] check back through older election results to see how much i can parse programmatically
