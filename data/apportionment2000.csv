@@ -1,0 +1,56 @@
+state,population,house_seats,net_gain
+~
+~ ------------------------------------------------------------------------------------------
+~ From: https://www.census.gov/population/cen2000/tab01.pdf
+~ ------------------------------------------------------------------------------------------
+~
+Alabama,4461130,7,0
+Alaska,628933,1,0
+Arizona,5140683,8,2
+Arkansas,2679733,4,0
+California,33930798,53,1
+Colorado,4311882,7,1
+Connecticut,3409535,5,-1
+Delaware,785068,1,0
+Florida,16028890,25,2
+Georgia,8206975,13,2
+Hawaii,1216642,2,0
+Idaho,1297274,2,0
+Illinois,12439042,19,-1
+Indiana,6090782,9,-1
+Iowa,2931923,5,0
+Kansas,2693824,4,0
+Kentucky,4049431,6,0
+Louisiana,4480271,7,0
+Maine,1277731,2,0
+Maryland,5307886,8,0
+Massachusetts,6355568,10,0
+Michigan,9955829,15,-1
+Minnesota,4925670,8,0
+Mississippi,2852927,4,-1
+Missouri,5606260,9,0
+Montana,905316,1,0
+Nebraska,1715369,3,0
+Nevada,2002032,3,1
+New Hampshire,1238415,2,0
+New Jersey,8424354,13,0
+New Mexico,1823821,3,0
+New York,19004973,29,-2
+North Carolina,8067673,13,1
+North Dakota,643756,1,0
+Ohio,11374540,18,-1
+Oklahoma,3458819,5,-1
+Oregon,3428543,5,0
+Pennsylvania,12300670,19,-2
+Rhode Island,1049662,2,0
+South Carolina,4025061,6,0
+South Dakota,756874,1,0
+Tennessee,5700037,9,0
+Texas,20903994,32,2
+Utah,2236714,3,0
+Vermont,609890,1,0
+Virginia,7100702,11,0
+Washington,5908684,9,0
+West Virginia,1813077,3,0
+Wisconsin,5371210,8,-1
+Wyoming,495304,1,0

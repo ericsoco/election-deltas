@@ -10,10 +10,15 @@
 - use percentage values instead of doing my own math?
 	since they're calculated against total number of votes...
 
-- [ ] properly account for third-parties
-- [ ] combine votes for candidates running across parties
+- [X] properly account for third-parties
+	see constants:PARTY_AFFILIATIONS
+- [X] combine votes for candidates running across parties
 	(look for candidates with same name who also won)
 - [ ] use percentages instead of summing vote counts,
 	if avail across all elections (might not be!)
 	(could also use "District Votes marker in [TOTAL VOTES] column")
-- [ ] check back through older election results to see how much i can parse programmatically
+- [X] check back through older election results to see how much i can parse programmatically
+	--> back to about 2000
+- [X] verify state totals against apportionment data
+	- [X] preload
+	- [X] compare

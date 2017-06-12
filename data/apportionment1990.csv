@@ -1,0 +1,56 @@
+state,population,house_seats
+~
+~ ------------------------------------------------------------------------------------------
+~ From: https://www.census.gov/population/apportionment/data/1990_apportionment_results.html
+~ ------------------------------------------------------------------------------------------
+~
+Alabama,4062608,7
+Alaska,551947,1
+Arizona,3677985,6
+Arkansas,2362239,4
+California,29839250,52
+Colorado,3307912,6
+Connecticut,3295669,6
+Delaware,668696,1
+Florida,13003362,23
+Georgia,6508419,11
+Hawaii,1115274,2
+Idaho,1011986,2
+Illinois,11466682,20
+Indiana,5564228,10
+Iowa,2787424,5
+Kansas,2485600,4
+Kentucky,3698969,6
+Louisiana,4238216,7
+Maine,1233223,2
+Maryland,4798622,8
+Massachusetts,6029051,10
+Michigan,9328784,16
+Minnesota,4387029,8
+Mississippi,2586443,5
+Missouri,5137804,9
+Montana,803655,1
+Nebraska,1584617,3
+Nevada,1206152,2
+New Hampshire,1109252,2
+New Jersey,7730188,13
+New Mexico,1515069,3
+New York,17990455,31
+North Carolina,6628637,12
+North Dakota,638800,1
+Ohio,10887325,19
+Oklahoma,3157604,6
+Oregon,2853733,5
+Pennsylvania,11924710,21
+Rhode Island,1003464,2
+South Carolina,3486703,6
+South Dakota,696004,1
+Tennessee,4896641,9
+Texas,17059805,30
+Utah,1727784,3
+Vermont,564964,1
+Virginia,6216568,11
+Washington,4887941,9
+West Virginia,1793477,3
+Wisconsin,4906745,9
+Wyoming,455975,1
