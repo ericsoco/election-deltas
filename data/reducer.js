@@ -241,11 +241,13 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 		});
 
 		return {
-			name: state.key,
-			longname: state.values[0].values[0].value.stateName,
-			numRepsD: reps.D.length,
-			numRepsR: reps.R.length,
-			numRepsOther: reps.other.length,
+			id: state.key,
+			name: state.values[0].values[0].value.stateName,
+			numReps: {
+				D: reps.D.length,
+				R: reps.R.length,
+				other: reps.other.length
+			},
 			reps
 		};
 	});
@@ -264,9 +266,9 @@ function validateStates (states, apportionmentsData) {
 	}
 
 	states.forEach(state => {
-		const stateNumReps = state.numRepsD + state.numRepsR + state.numRepsOther;
+		const stateNumReps = state.numReps.D + state.numReps.R + state.numReps.other;
 		try {
-			assert.equal(stateNumReps, apportionments[state.longname].numHouseSeats, `Incorrect number of reps for state ${state.name}`);	
+			assert.equal(stateNumReps, apportionments[state.name].numHouseSeats, `Incorrect number of reps for state ${state.id}`);	
 		} catch (error) {
 			console.error(`${error.message}; expected:${error.expected}, actual:${error.actual}`);
 		}
@@ -276,78 +278,37 @@ function validateStates (states, apportionmentsData) {
 function calculateMetrics (data) {
 
 	const {candidates, states, houseVotesMap} = data;
-	console.log(data);
 
-	//
-	// TODO NEXT:
-	// calc optimalNumRepsD and popularRepresentationDelta from here
-	//
-
-	/*
-	// reduce list of individual candidates into list of stats per state
-	const totalReps = {};
-	let statesMap = candidates.reduce((acc, candidate) => {
-		let state = acc[candidate.state];
-		if (!state) {
-			state = {
-				name: candidate.state,
-				repsD: 0,
-				repsR: 0,
-				repsOther: 0,
-				votesD: 0,
-				votesR: 0,
-				votesOther: 0
-			};
-			acc[candidate.state] = state;
+	statesMap = states.reduce((map, state) => {
+		const {id, numReps} = state;
+		const votes = houseVotesMap[id];
+		if (!votes) {
+			console.warn(`No house votes data for ${id}`);
+			return map;
 		}
 
-		let {party} = candidate;
-		if (candidate.won) {
-			if (MAJOR_PARTIES[party]) {
-				state[`reps${party}`]++;
-			} else {
-				state['repsOther']++;
+		const totalNumReps = numReps.D + numReps.R + numReps.other;
+		const popularVoteNumRepsD = Math.round(votes.DPct * totalNumReps);
+		const popularRepresentationDelta = numReps.D - popularVoteNumRepsD;
+
+		map[id] = Object.assign({},
+			state,
+			{
+				votes,
+				popularRepresentationDelta
 			}
-
-			if (!totalReps[party]) totalReps[party] = 0;
-			totalReps[party]++;
-		}
-
-		state[`votes${party}`] += candidate.votes;
-		return acc;
+		);
+		return map;
 	}, {});
-	console.log(totalReps);
 
-	// flatten states map into list
-	states = Object.keys(statesMap)
-		.map(k => statesMap[k])
-
-	console.log(states.map(s => `${s.name}: ${s.repsD + s.repsR + s.repsOther}`));
-
-	// calculate useful metrics for each state
-	states.forEach(state => {
-		const votesRatio = state.votesD / (state.votesD + state.votesR);
-		const optimalNumRepsD = Math.round(votesRatio * (state.repsD + state.repsR));
-
-		// difference between number of elected reps per party and number of reps per party
-		// if reps were assigned based on popular vote alone.
-		// negative values mean more Ds in office than popular vote ratio;
-		// positive values mean more Rs.
-		state.popularRepresentationDelta = optimalNumRepsD - state.repsD;
-
-		// values between -1 (fully D) <> 1 (fully R)
-		state.votesRatio = votesRatio * 2 - 1
-		state.repsRatio = state.repsD / (state.repsD + state.repsR) * 2 - 1;
-	});
-
-	states = states.sort((a, b) => a.popularRepresentationDelta - b.popularRepresentationDelta);
-		// .sort((a, b) => a.repsRatio - b.repsRatio);
-	// console.log(states);
-	// console.log(states.length);
-	*/
+	const processedStates = Object.keys(statesMap).map(id => statesMap[id])
+		.sort((a, b) => a.popularRepresentationDelta - b.popularRepresentationDelta);
+	const totalDelta = processedStates.reduce((acc, state) => acc + state.popularRepresentationDelta, 0);
+	console.log(totalDelta);
+	console.log(processedStates);
 }
 
 function logResults (candidates, states) {
 	console.log(candidates);
-	console.log(states.map(state => `[${state.name}]:${state.numRepsD + state.numRepsR + state.numRepsOther} -- (D${state.numRepsD} R${state.numRepsR} O${state.numRepsOther})`));
+	console.log(states.map(state => `[${state.id}]:${state.numReps.D + state.numReps.R + state.numReps.other} -- (D${state.numReps.D} R${state.numReps.R} O${state.numReps.other})`));
 }
