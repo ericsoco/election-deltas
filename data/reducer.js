@@ -133,7 +133,7 @@ function processHouseResults(dataFile, preloadedData) {
 			const district = row['D'].substr(0, 2);
 
 			// TODO: vv fix this case vv
-			if (isNaN(+votes.replace(/,/gi, ''))) console.warn(`[WARN] votes isNaN: ${votes}[${state}]`);
+			if (isNaN(+votes.replace(/,/gi, ''))) console.warn(`[WARN] votes isNaN: ${votes} [${state}]`);
 
 			const candidate = {
 				state,

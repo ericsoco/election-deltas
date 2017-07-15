@@ -1,5 +1,33 @@
 ## TODO
 
+NEXT:
+- [ ] remove unopposed races / seats altogether.
+	could try using linear regression from previous/future elections
+	to approximate vote counts if not unopposed,
+	but due to redistricting there's really no good way to approximate.
+- [ ] walk through list below: how much is already done?
+- [ ] a few TODOs in the code...
+- [ ] calculate based on statewide per-party votes (pres/gov)
+	as different metric than summing house votes?
+- [ ] process all data into new file/s
+- [ ] map it!
+- [ ] 50-bar chart: each state, left-ro-right, sorted by poprepdelta
+	- [ ] combine with urban-rural breakdown
+		https://docs.google.com/spreadsheets/d/1tglaCjHFaS64lMA_Z4czGqVknmySOPM-p66V5PeH6Rc/edit#gid=728308973
+		(from: http://www.icip.iastate.edu/tables/population/urban-pct-states)
+	- [ ] could also display D/R seats as e.g. stacked bar, with optimal distribution of seats marked on stacked bar
+		e.g. NC: D-D-D-R-R-R|R-R-R-R-R-R-R
+			 PA: D-D-D-D-D-R-R-R|R-R-R-R-R-R-R-R-R-R
+			 NY: D-D-D-D-D-D-D-D-D-D-D-D-D|D-D-D-D-D-R-R-R-R-R-R-R-R-R
+- [ ] other non-geospatial forms...?
+- [ ] question for levi / Open Redistricting: why the massive dem poprepdeltas in NY & CA?
+	- democratic gerrymandering?
+	- urban distribution?
+	- lower dem turnout in some areas (urban)?
+	- something else?
+
+----
+
 - verify that all house seats are accounted for for each year's election;
 	not all seats may have been up for election. (?)
 - handle elections with unopposed candidates...how?
