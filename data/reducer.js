@@ -11,7 +11,8 @@ const constants = require('./constants');
 const {
 	MAJOR_PARTIES,
 	PARTY_AFFILIATIONS,
-	VALID_STATES
+	VALID_STATES,
+	INVALID_VOTES_STRINGS
 } = constants;
 
 const apportionmentsFiles = {
@@ -20,7 +21,21 @@ const apportionmentsFiles = {
 	'2010': 'apportionment2010.csv'
 };
 
+const YEARS = [
+	'2014',
+	'2012',
+	'2010'
+];
+
 const houseYear = process.argv[2];
+if (!YEARS.includes(houseYear)) {
+	throw new Error(
+`Year '${houseYear}' not available. Process data with the reducer script as follows:
+\`$ npm parse-year -- YYYY\`
+where \`YYYY\` is one of the following years: ${YEARS}`
+	);
+}
+
 const houseVotesFile = `houseVotes${houseYear}.csv`;
 const houseResultsFile = `houseResults${houseYear}.csv`;
 
@@ -131,9 +146,15 @@ function processHouseResults(dataFile, preloadedData) {
 
 		if (votes && VALID_STATES[state]) {
 			const district = row['D'].substr(0, 2);
+			const votesStr = votes.toLowerCase();
+			const wasUnopposed = votesStr.includes('unopposed');
+			const isInvalid = INVALID_VOTES_STRINGS.includes(votesStr);
 
-			// TODO: vv fix this case vv
-			if (isNaN(+votes.replace(/,/gi, ''))) console.warn(`[WARN] votes isNaN: ${votes} [${state}]`);
+			if (!wasUnopposed && !isInvalid) {
+				// unexpected entries in 'GENERAL VOTES' column fall here.
+				if (isNaN(+votes.replace(/,/gi, ''))) console.warn(`[WARN] votes isNaN: ${votes} [${state}]`);
+			}
+			if (isInvalid) return;
 
 			const candidate = {
 				state,
@@ -142,7 +163,8 @@ function processHouseResults(dataFile, preloadedData) {
 				party,
 				name: row['CANDIDATE NAME'],
 				votes: +votes.replace(/,/gi, ''),
-				pct: +(row['GENERAL %'].replace(/%/gi, '')) / 100,
+				wasUnopposed,
+				pct: wasUnopposed ? 0 : +(row['GENERAL %'].replace(/%/gi, '')) / 100,
 				incumbent: !!row['(I)'],
 				won: !!row['GE WINNER INDICATOR']
 			};
@@ -188,7 +210,7 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 				candidate = nameList[0];
 			} else {
 				// aggregate all votes for a candidate across parties
-				// down to a single major party, if it exists
+				// into to a single major party, if it exists
 				candidate = nameList.find(c => {
 					MAJOR_PARTIES[c.party] ||
 					MAJOR_PARTIES[PARTY_AFFILIATIONS[c.party]]
@@ -217,7 +239,8 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 		const reps = {
 			D: [],
 			R: [],
-			other: []
+			other: [],
+			unopposed: []
 		};
 
 		state.values.forEach(district => {
@@ -232,12 +255,14 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 				return;
 			}
 
-			const {majorParty} = winner.value;
+			const {majorParty, wasUnopposed} = winner.value;
 			if (majorParty) {
 				reps[majorParty].push(winner);
 			} else {
 				reps.other.push(winner);
 			}
+
+			if (wasUnopposed) reps.unopposed.push(winner);
 		});
 
 		return {
@@ -246,7 +271,8 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 			numReps: {
 				D: reps.D.length,
 				R: reps.R.length,
-				other: reps.other.length
+				other: reps.other.length,
+				unopposed: reps.unopposed.length
 			},
 			reps
 		};
@@ -275,15 +301,12 @@ function validateStates (states, apportionmentsData) {
 	});
 }
 
-function calculateMetrics (data) {
-
-	const {candidates, states, houseVotesMap} = data;
-
+function calculateMetrics ({candidates, states, houseVotesMap}) {
 	statesMap = states.reduce((map, state) => {
 		const {id, numReps} = state;
 		const votes = houseVotesMap[id];
 		if (!votes) {
-			console.warn(`No house votes data for ${id}`);
+			console.warn(`[WARN] No house votes data for ${id}`);
 			return map;
 		}
 

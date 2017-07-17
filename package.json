@@ -1,0 +1,24 @@
+{
+  "name": "election-deltas",
+  "version": "0.0.1",
+  "description": "TODO",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "parse-year": "cd ./data && node reducer.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ericsoco/election-deltas.git"
+  },
+  "keywords": [
+    "TODO"
+  ],
+  "author": "ericsoco",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ericsoco/election-deltas/issues"
+  },
+  "homepage": "https://github.com/ericsoco/election-deltas#readme"
+}

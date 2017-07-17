@@ -63,8 +63,14 @@ const VALID_STATES = {
 	'WY': true
 };
 
+const INVALID_VOTES_STRINGS = [
+	'n/a',
+	'#'
+];
+
 module.exports = {
 	MAJOR_PARTIES,
 	PARTY_AFFILIATIONS,
-	VALID_STATES
+	VALID_STATES,
+	INVALID_VOTES_STRINGS
 };

@@ -1,12 +1,16 @@
 ## TODO
 
 NEXT:
-- [ ] remove unopposed races / seats altogether.
+- [X] remove unopposed races / seats altogether.
 	could try using linear regression from previous/future elections
 	to approximate vote counts if not unopposed,
 	but due to redistricting there's really no good way to approximate.
+	-- they're effectively already removed, since there is no vote count for those races,
+		but they still must factor into the total & per-party rep count.
 - [ ] walk through list below: how much is already done?
 - [ ] a few TODOs in the code...
+- [ ] handle special elections (...how?)
+	e.g. VA-07 in 2014
 - [ ] calculate based on statewide per-party votes (pres/gov)
 	as different metric than summing house votes?
 - [ ] process all data into new file/s
@@ -19,6 +23,11 @@ NEXT:
 		e.g. NC: D-D-D-R-R-R|R-R-R-R-R-R-R
 			 PA: D-D-D-D-D-R-R-R|R-R-R-R-R-R-R-R-R-R
 			 NY: D-D-D-D-D-D-D-D-D-D-D-D-D|D-D-D-D-D-R-R-R-R-R-R-R-R-R
+		color poprepdelta area more brightly
+		align all bars on horizontal axis between R & D, i.e. all R above all D below
+		also, highlight unopposed races....no good way to factor these into poprepdelta but they're significant.
+		ensure each item represents a district, not a candidate, since candidates (and parties) can change
+		within a single term (via special elections).
 - [ ] other non-geospatial forms...?
 - [ ] question for levi / Open Redistricting: why the massive dem poprepdeltas in NY & CA?
 	- democratic gerrymandering?
