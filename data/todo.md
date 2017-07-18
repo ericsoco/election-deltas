@@ -7,12 +7,24 @@ NEXT:
 	but due to redistricting there's really no good way to approximate.
 	-- they're effectively already removed, since there is no vote count for those races,
 		but they still must factor into the total & per-party rep count.
-- [ ] walk through list below: how much is already done?
+- [ ] calculate efficiency gap, too
+	need:
+	- num votes D/R/total per race
+	- winner
+	- winner must be D or R (have to omit third-party wins)
+	- [ ] verify calculations
+		ran a first pass but too tired to check it is correct...
+
 - [ ] a few TODOs in the code...
-- [ ] handle special elections (...how?)
+- [ ] handle special elections:
+	detect them while parsing and mark them as anomalies,
+	just like with unopposed elections.
+	then decide what to do with them on the visualization side.
 	e.g. VA-07 in 2014
-- [ ] calculate based on statewide per-party votes (pres/gov)
+- [ ] calculate based on statewide per-party votes (pres/senate/gov)
 	as different metric than summing house votes?
+	note: pres vote % is available in 2012 sheet, in Appendix A, back to 1990s.
+	note: pres+senate votes (combined) available in each sheet, ~4th tab
 - [ ] process all data into new file/s
 - [ ] map it!
 - [ ] 50-bar chart: each state, left-ro-right, sorted by poprepdelta
@@ -37,21 +49,19 @@ NEXT:
 
 ----
 
-- verify that all house seats are accounted for for each year's election;
+- [X] verify that all house seats are accounted for for each year's election;
 	not all seats may have been up for election. (?)
-- handle elections with unopposed candidates...how?
-- is it useful to have the total vote counts per state?
+- [X] handle elections with unopposed candidates...how?
+- [X] is it useful to have the total vote counts per state?
 	https://transition.fec.gov/pubrec/fe2014/tables2014.pdf
 	p9 has house general votes per state per party...
-- consider how to handle third-party candidates
-- use percentage values instead of doing my own math?
+- [X] use percentage values instead of doing my own math?
 	since they're calculated against total number of votes...
-
 - [X] properly account for third-parties
 	see constants:PARTY_AFFILIATIONS
 - [X] combine votes for candidates running across parties
 	(look for candidates with same name who also won)
-- [ ] use percentages instead of summing vote counts,
+- [X] use percentages instead of summing vote counts,
 	if avail across all elections (might not be!)
 	(could also use "District Votes marker in [TOTAL VOTES] column")
 - [X] check back through older election results to see how much i can parse programmatically

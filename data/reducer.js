@@ -113,10 +113,10 @@ function loadHouseVotes (file) {
 					R: +(row['General_Republican'].replace(/,/gi, '')) || 0,
 					other: +(row['General_Other'].replace(/,/gi, '')) || 0
 				};
-				const totalVotes = stateVotes.D + stateVotes.R + stateVotes.other;
-				stateVotes.DPct = stateVotes.D / totalVotes;
-				stateVotes.RPct = stateVotes.R / totalVotes;
-				stateVotes.otherPct = stateVotes.other / totalVotes;
+				stateVotes.total = stateVotes.D + stateVotes.R + stateVotes.other;
+				stateVotes.DPct = stateVotes.D / stateVotes.total;
+				stateVotes.RPct = stateVotes.R / stateVotes.total;
+				stateVotes.otherPct = stateVotes.other / stateVotes.total;
 				houseVotesMap[row['State']] = stateVotes;
 			}
 		});
@@ -161,7 +161,7 @@ function processHouseResults(dataFile, preloadedData) {
 				stateName: row['STATE'],
 				district,
 				party,
-				name: row['CANDIDATE NAME'],
+				name: cleanCandidateName(row['CANDIDATE NAME']),
 				votes: +votes.replace(/,/gi, ''),
 				wasUnopposed,
 				pct: wasUnopposed ? 0 : +(row['GENERAL %'].replace(/%/gi, '')) / 100,
@@ -183,6 +183,11 @@ function processHouseResults(dataFile, preloadedData) {
 				houseVotesMap: preloadedData.houseVotesMap
 			});
 		});
+}
+
+function cleanCandidateName (name) {
+	if (name.includes(' #')) return name.substr(0, -2);
+	return name;
 }
 
 function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
@@ -229,6 +234,13 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 			// map all candidates to a major party if possible
 			let {party} = candidate;
 			candidate.majorParty = MAJOR_PARTIES[party] ? party : PARTY_AFFILIATIONS[party];
+			if (!candidate.majorParty) {
+				if (party.substr(0, 2) === 'D/') candidate.majorParty = 'D'
+				else if (party.substr(0, 2) === 'R/') candidate.majorParty = 'R'
+				else if (party.includes('(D)')) candidate.majorParty = 'D'
+				else if (party.includes('(R)')) candidate.majorParty = 'R'
+			}
+			if (!candidate.majorParty && candidate.won) console.log(`${candidate.state}-${candidate.district}: ${candidate.party}`);
 			return candidate;
 		})
 		.entries(candidates);
@@ -242,6 +254,11 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 			other: [],
 			unopposed: []
 		};
+		const stateVotes = {
+			wastedD: 0,
+			wastedR: 0,
+			totalDR: 0
+		};
 
 		state.values.forEach(district => {
 			// only return numbered districts
@@ -253,6 +270,14 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 			if (!winner) {
 				console.warn(`[WARN] No winner found in ${state.key}-${district.key}`);
 				return;
+			}
+
+			// efficiency gap metric
+			const districtVotes = calculateDistrictWastedVotes(district, winner);
+			if (districtVotes) {
+				stateVotes.wastedD += districtVotes.wastedD;
+				stateVotes.wastedR += districtVotes.wastedR;
+				stateVotes.totalDR += districtVotes.totalDR;
 			}
 
 			const {majorParty, wasUnopposed} = winner.value;
@@ -274,12 +299,35 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 				other: reps.other.length,
 				unopposed: reps.unopposed.length
 			},
-			reps
+			reps,
+			efficiencyGapD: (stateVotes.wastedD - stateVotes.wastedR) / stateVotes.totalDR
 		};
 	});
 
 	validateStates(states, apportionmentsData);
 	return states;
+}
+
+function calculateDistrictWastedVotes (district, winner) {
+	// third-party winners cannot be used for efficiency gap metric
+	if (!winner.value.majorParty) return null;
+
+	let votesD, votesR;
+	district.values.forEach(({value}) => {
+		if (value.majorParty === 'D') votesD = value.votes;
+		else if (value.majorParty === 'R') votesR = value.votes;
+	});
+
+	// if no vote count available for either party,
+	// cannot include district in efficiency gap metric
+	if (isNaN(votesD) || isNaN(votesR)) return null;
+
+	const votesNeededToWin = Math.floor((votesD + votesR) / 2) + 1;
+	return {
+		wastedD: votesD > votesR ? votesD - votesNeededToWin : votesD,
+		wastedR: votesR > votesD ? votesR - votesNeededToWin : votesR,
+		totalDR: votesD + votesR
+	};
 }
 
 function validateStates (states, apportionmentsData) {
@@ -327,8 +375,12 @@ function calculateMetrics ({candidates, states, houseVotesMap}) {
 	const processedStates = Object.keys(statesMap).map(id => statesMap[id])
 		.sort((a, b) => a.popularRepresentationDelta - b.popularRepresentationDelta);
 	const totalDelta = processedStates.reduce((acc, state) => acc + state.popularRepresentationDelta, 0);
-	console.log(totalDelta);
-	console.log(processedStates);
+	// console.log(totalDelta);
+	// console.log(processedStates);
+
+	const statesSortedByEfficiencyGap = processedStates.concat()
+		.sort((a, b) => a.efficiencyGapD - b.efficiencyGapD);
+	console.log(statesSortedByEfficiencyGap);
 }
 
 function logResults (candidates, states) {

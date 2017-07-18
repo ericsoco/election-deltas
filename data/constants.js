@@ -6,8 +6,7 @@ const MAJOR_PARTIES = {
 const PARTY_AFFILIATIONS = {
 	'DFL': 'D',
 	'DNL': 'D',
-	'WF': 'D',
-	'R/TRP': 'R'
+	'WF': 'D'
 };
 
 const VALID_STATES = {
