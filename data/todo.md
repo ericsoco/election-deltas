@@ -7,13 +7,23 @@ NEXT:
 	but due to redistricting there's really no good way to approximate.
 	-- they're effectively already removed, since there is no vote count for those races,
 		but they still must factor into the total & per-party rep count.
+	"For districts without both a Democrat and Republican running in the general election, we estimated
+	the vote share both parties would have received in a contested two-party election based on the prior
+	election’s House results, the most recent district-level Presidential results using totals calculated and
+	compiled by Daily Kos Elections for both 2012 and 2016,19 a district’s Cook Partisan Voter Index, and
+	the winning candidate’s incumbency status." -- Brennan Center For Justice
+	http://www.politico.com/f/?id=0000015c-11a2-d46a-a3ff-9da240e10002, p16
+
 - [ ] calculate efficiency gap, too
 	need:
 	- num votes D/R/total per race
 	- winner
 	- winner must be D or R (have to omit third-party wins)
 	- [ ] verify calculations
-		ran a first pass but too tired to check it is correct...
+		- [ ] against Appendix A here: http://www.politico.com/f/?id=0000015c-11a2-d46a-a3ff-9da240e10002
+			(note that their methodolgy attempts to limit impact of high-turnout districts,
+			so numbers will likely be slightly different)
+	- [ ] becomes problematic for states with < 6 seats, should throw those out
 
 - [ ] a few TODOs in the code...
 - [ ] handle special elections:

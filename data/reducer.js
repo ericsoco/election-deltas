@@ -290,6 +290,8 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 			if (wasUnopposed) reps.unopposed.push(winner);
 		});
 
+		const efficiencyGapD = (stateVotes.wastedD - stateVotes.wastedR) / stateVotes.totalDR;
+
 		return {
 			id: state.key,
 			name: state.values[0].values[0].value.stateName,
@@ -300,7 +302,8 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 				unopposed: reps.unopposed.length
 			},
 			reps,
-			efficiencyGapD: (stateVotes.wastedD - stateVotes.wastedR) / stateVotes.totalDR
+			efficiencyGapD,
+			efficiencyGapSeatsD: efficiencyGapD * (reps.D.length + reps.R.length)
 		};
 	});
 
@@ -379,7 +382,7 @@ function calculateMetrics ({candidates, states, houseVotesMap}) {
 	// console.log(processedStates);
 
 	const statesSortedByEfficiencyGap = processedStates.concat()
-		.sort((a, b) => a.efficiencyGapD - b.efficiencyGapD);
+		.sort((a, b) => a.efficiencyGapSeatsD - b.efficiencyGapSeatsD);
 	console.log(statesSortedByEfficiencyGap);
 }
 
