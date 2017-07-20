@@ -23,8 +23,12 @@ NEXT:
 		- [ ] against Appendix A here: http://www.politico.com/f/?id=0000015c-11a2-d46a-a3ff-9da240e10002
 			(note that their methodolgy attempts to limit impact of high-turnout districts,
 			so numbers will likely be slightly different)
+			--> numbers are similar but still substantially different.
+				need to loop back on this...
 	- [ ] becomes problematic for states with < 6 seats, should throw those out
+	- [ ] note (in visualization?) those above 2-seat threshold
 
+- [ ] write to files instead of just logging
 - [ ] a few TODOs in the code...
 - [ ] handle special elections:
 	detect them while parsing and mark them as anomalies,

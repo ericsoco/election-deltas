@@ -1,11 +1,11 @@
-const fs = require('fs');
 const assert = require('assert');
+const fs = require('fs');
+
 const parse = require('csv-parse');
+const d3Collection = require('d3-collection'),
+	 { nest } = d3Collection;
+const jsonfile = require('jsonfile');
 const transform = require('stream-transform');
-const d3Collection = require('d3-collection');
-const {
-	nest
-} = d3Collection;
 
 const constants = require('./constants');
 const {
@@ -14,11 +14,13 @@ const {
 	VALID_STATES,
 	INVALID_VOTES_STRINGS
 } = constants;
+const INPUT_PATH = './input';
+const OUTPUT_PATH = './output';
 
 const apportionmentsFiles = {
-	'1990': 'apportionment1990.csv',
-	'2000': 'apportionment2000.csv',
-	'2010': 'apportionment2010.csv'
+	'1990': `${INPUT_PATH}/apportionment1990.csv`,
+	'2000': `${INPUT_PATH}/apportionment2000.csv`,
+	'2010': `${INPUT_PATH}/apportionment2010.csv`
 };
 
 const YEARS = [
@@ -36,8 +38,8 @@ where \`YYYY\` is one of the following years: ${YEARS}`
 	);
 }
 
-const houseVotesFile = `houseVotes${houseYear}.csv`;
-const houseResultsFile = `houseResults${houseYear}.csv`;
+const houseVotesFile = `${INPUT_PATH}/houseVotes${houseYear}.csv`;
+const houseResultsFile = `${INPUT_PATH}/houseResults${houseYear}.csv`;
 
 preloadData({apportionmentsFiles, houseVotesFile})
 .then(preloadedData => processHouseResults(houseResultsFile, preloadedData))
@@ -290,7 +292,7 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 			if (wasUnopposed) reps.unopposed.push(winner);
 		});
 
-		const efficiencyGapD = (stateVotes.wastedD - stateVotes.wastedR) / stateVotes.totalDR;
+		const efficiencyGapD = (stateVotes.wastedR - stateVotes.wastedD) / stateVotes.totalDR;
 
 		return {
 			id: state.key,
@@ -375,15 +377,38 @@ function calculateMetrics ({candidates, states, houseVotesMap}) {
 		return map;
 	}, {});
 
-	const processedStates = Object.keys(statesMap).map(id => statesMap[id])
+	const processedStates = Object.keys(statesMap).map(id => statesMap[id]);
+	const statesSortedByPopRepDelta = processedStates.concat()
 		.sort((a, b) => a.popularRepresentationDelta - b.popularRepresentationDelta);
-	const totalDelta = processedStates.reduce((acc, state) => acc + state.popularRepresentationDelta, 0);
-	// console.log(totalDelta);
-	// console.log(processedStates);
+	const totalPopRepDelta = statesSortedByPopRepDelta
+		.reduce((acc, state) => acc + state.popularRepresentationDelta, 0);
+	// console.log(totalPopRepDelta);
 
-	const statesSortedByEfficiencyGap = processedStates.concat()
+	const statesSortedByEfficiencyGapSeats = processedStates.concat()
 		.sort((a, b) => a.efficiencyGapSeatsD - b.efficiencyGapSeatsD);
-	console.log(statesSortedByEfficiencyGap);
+	const totalEfficiencyGapSeatDelta = statesSortedByEfficiencyGapSeats
+		.reduce((acc, state) => acc + state.efficiencyGapSeatsD, 0);
+	// console.log({totalEfficiencyGapSeatDelta});
+
+	writeMetrics({
+		statesSortedByPopRepDelta,
+		totalPopRepDelta,
+		statesSortedByEfficiencyGapSeats,
+		totalEfficiencyGapSeatDelta
+	});
+}
+
+function writeMetrics ({statesSortedByEfficiencyGapSeats}) {
+	const outFile = `${OUTPUT_PATH}/states-${houseYear}.json`;
+	console.log(`Writing results to ${outFile}...`);
+	jsonfile.writeFile(
+		outFile,
+		statesSortedByEfficiencyGapSeats,
+		{ spaces: 2 },
+		error => {
+			if (error) console.error(`Could not write results to file: ${error}`);
+		}
+	);
 }
 
 function logResults (candidates, states) {

@@ -3,7 +3,12 @@
   "version": "0.0.1",
   "description": "TODO",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "csv-parse": "^1.2.0",
+    "d3-collection": "^1.0.4",
+    "jsonfile": "^3.0.1",
+    "stream-transform": "^0.1.2"
+  },
   "devDependencies": {},
   "scripts": {
     "parse-year": "cd ./data && node reducer.js"
