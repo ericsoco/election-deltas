@@ -1,6 +1,20 @@
 ## TODO
 
 NEXT:
+- [ ] clean + process data for 2002-2012
+	- [X] pull houseVotesYYYY.csv files
+	- [X] pull houseResultsYYYY.csv files
+	- [ ] 2010 and before is missing GE WINNER INDICATOR
+		(did i already write code for this, for same case w/
+		 HI District 01 in 2014? see notes.txt)
+	- [ ] document cleaning process in README.md
+	- [ ] parse remaining files
+		- [ ] filter only to rows with valid FEC ID# ?
+			because 2014 does not list aggregated votes per district,
+			but other years (2012) do...
+		- [ ] parse incumbent status column as well
+	- [ ] fix parsing issues per year
+- [ ] document methodology before it's gone from your head completely
 - [X] remove unopposed races / seats altogether.
 	could try using linear regression from previous/future elections
 	to approximate vote counts if not unopposed,
@@ -28,7 +42,7 @@ NEXT:
 	- [ ] becomes problematic for states with < 6 seats, should throw those out
 	- [ ] note (in visualization?) those above 2-seat threshold
 
-- [ ] write to files instead of just logging
+- [X] write to files instead of just logging
 - [ ] a few TODOs in the code...
 - [ ] handle special elections:
 	detect them while parsing and mark them as anomalies,

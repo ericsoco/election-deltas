@@ -24,7 +24,8 @@ NC: two winner indicators for district 12 (FULL TERM + UNEXPIRED TERM)
 HI: missing winner indicator for district 01
     for this, only solution i see is to search back over every district
     for each, if no winner, use votes / percentages
-
+    note: this logic will be required for years other than 2014 anyway,
+    some of which are missing winner indicator column
 
 
 
