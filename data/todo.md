@@ -5,14 +5,14 @@ NEXT:
 	- [X] pull houseVotesYYYY.csv files
 	- [X] pull houseResultsYYYY.csv files
 	- [ ] 2010 and before is missing GE WINNER INDICATOR
-		(did i already write code for this, for same case w/
-		 HI District 01 in 2014? see notes.txt)
+		implement in processStateWinners() -> state.values.forEach()
 	- [ ] document cleaning process in README.md
+		- [ ] finish adding function header docs
 	- [ ] parse remaining files
 		- [ ] filter only to rows with valid FEC ID# ?
 			because 2014 does not list aggregated votes per district,
 			but other years (2012) do...
-		- [ ] parse incumbent status column as well
+		- [X] parse incumbent status column as well
 	- [ ] fix parsing issues per year
 - [ ] document methodology before it's gone from your head completely
 - [X] remove unopposed races / seats altogether.

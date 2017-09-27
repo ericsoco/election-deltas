@@ -60,6 +60,12 @@ function preloadData (preloadFiles) {
 	}, {}))
 }
 
+/**
+ * Apportionments are the number of house seats granted each state
+ * based on its population from the most recent census, and are
+ * recalculated once per decade. Apportionments data are used here
+ * to verify the number of races and winners in the FEC data.
+ */
 function loadApportionmentsData (files) {
 	return new Promise((resolve, reject) => {
 		let preloadCount = 0;
@@ -98,6 +104,12 @@ function loadApportionmentsData (files) {
 	});
 }
 
+/**
+ * The `houseVotesYYYY.csv` files contain the total number of votes per 
+ * major party and other parties in each general election (primaries as well, 
+ * but they're not used here). These numbers are used for metrics based on
+ * the total number of votes per party, such as `popularRepresentationDelta`.
+ */
 function loadHouseVotes (file) {
 	return new Promise((resolve, reject) => {
 		const houseVotesMap = {};
@@ -131,7 +143,14 @@ function loadHouseVotes (file) {
 	});
 }
 
-function processHouseResults(dataFile, preloadedData) {
+/**
+ * The `houseResultsYYYY.csv` files contain detailed information about all candidates
+ * for all races in each biannual House election. This function normalizes the data
+ * into a list of candidate objects with useful information about each, and also maps
+ * each candidate against her/his state, district, and party. Note that only candidates
+ * who received votes, and who ran in a state listed in VALID_STATES, are processed.
+ */
+function processHouseResults (dataFile, preloadedData) {
 	const csvParser = parse({
 		columns: true,
 		delimiter: ',',
@@ -143,7 +162,7 @@ function processHouseResults(dataFile, preloadedData) {
 
 	const transformer = transform(row => {
 		const party = row['PARTY'].trim(),
-			votes = row['GENERAL VOTES '],
+			votes = row['GENERAL VOTES'],
 			state = row['STATE ABBREVIATION'];
 
 		if (votes && VALID_STATES[state]) {
@@ -167,7 +186,7 @@ function processHouseResults(dataFile, preloadedData) {
 				votes: +votes.replace(/,/gi, ''),
 				wasUnopposed,
 				pct: wasUnopposed ? 0 : +(row['GENERAL %'].replace(/%/gi, '')) / 100,
-				incumbent: !!row['(I)'],
+				incumbent: !!row['INCUMBENT INDICATOR (I)'],
 				won: !!row['GE WINNER INDICATOR']
 			};
 			candidates.push(candidate);
@@ -179,10 +198,13 @@ function processHouseResults(dataFile, preloadedData) {
 		.pipe(csvParser)
 		.pipe(transformer)
 		.on('finish', () => {
+			const {apportionmentsData, houseVotesMap} = preloadedData;
+			const nestedStates = cleanAndReduce(candidates);
+			const states = validateStates(processStateWinners(nestedStates), apportionmentsData);
 			calculateMetrics({
 				candidates,
-				states: cleanAndReduce(candidates, preloadedData),
-				houseVotesMap: preloadedData.houseVotesMap
+				states,
+				houseVotesMap
 			});
 		});
 }
@@ -192,23 +214,17 @@ function cleanCandidateName (name) {
 	return name;
 }
 
-function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
-	// First, nest all candidates by state and district,
+/**
+ * Nest candidates by state, district, and party.
+ * Attempt to map parties to major party affiliation where possible,
+ * and aggregate votes across all parties on which the candidate ran.
+ */
+function cleanAndReduce (candidates) {
+	// Nest all candidates by state and district
 	// and clean / normalize as necessary
-	let nestedStates = nest()
+	const nestedStates = nest()
 		.key(c => c.state)
 		.key(c => c.district)
-		.rollup(districtList => {
-			// vv vv vv
-			// TODO: ensure at least one winner per district (HI D-01, VA-??)
-			// ^^ ^^ ^^
-			// only return numbered districts
-			// (non-numeric values may appear in district column on metadata rows)
-			console.log(">>>> ROLLUP!");
-			console.log(">>>> WHY IS THIS NOT CALLED??? only one rollup per nest()?");
-			debugger;
-			return districtList.filter(district => !isNaN(parseInt(district.key)));
-		})
 		.key(c => c.name)
 		.rollup(nameList => {
 			// only return one entry per name
@@ -247,7 +263,14 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 		})
 		.entries(candidates);
 
-	// Then, flatten nested data into array of states
+	return nestedStates;
+}
+
+/**
+ * TODO: document
+ */
+function processStateWinners (nestedStates) {
+	// Flatten nested data into array of states
 	// with only the winners represented in each.
 	const states = nestedStates.map(state => {
 		const reps = {
@@ -265,11 +288,13 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 		state.values.forEach(district => {
 			// only return numbered districts
 			// (non-numeric values may appear in district column on metadata rows)
-			// TODO: tried to run this as a rollup above but didn't work...???
 			if (isNaN(parseInt(district.key))) return;
 
 			const winner = district.values.find(candidate => candidate.value.won);
 			if (!winner) {
+				//
+				// TODO: calculate winner from vote percentages
+				//
 				console.warn(`[WARN] No winner found in ${state.key}-${district.key}`);
 				return;
 			}
@@ -309,10 +334,12 @@ function cleanAndReduce (candidates, {apportionmentsData, houseVotesMap}) {
 		};
 	});
 
-	validateStates(states, apportionmentsData);
 	return states;
 }
 
+/**
+ * TODO: document
+ */
 function calculateDistrictWastedVotes (district, winner) {
 	// third-party winners cannot be used for efficiency gap metric
 	if (!winner.value.majorParty) return null;
@@ -335,6 +362,9 @@ function calculateDistrictWastedVotes (district, winner) {
 	};
 }
 
+/**
+ * TODO: document
+ */
 function validateStates (states, apportionmentsData) {
 	const apportionmentsYear = Math.floor(parseInt(houseYear) / 10) * 10;
 	const apportionments = apportionmentsData[apportionmentsYear.toString()];
@@ -352,8 +382,13 @@ function validateStates (states, apportionmentsData) {
 			console.error(`${error.message}; expected:${error.expected}, actual:${error.actual}`);
 		}
 	});
+
+	return states;
 }
 
+/**
+ * TODO: document
+ */
 function calculateMetrics ({candidates, states, houseVotesMap}) {
 	statesMap = states.reduce((map, state) => {
 		const {id, numReps} = state;
@@ -398,6 +433,9 @@ function calculateMetrics ({candidates, states, houseVotesMap}) {
 	});
 }
 
+/**
+ * Write calculated metrics to disk.
+ */
 function writeMetrics ({statesSortedByEfficiencyGapSeats}) {
 	const outFile = `${OUTPUT_PATH}/states-${houseYear}.json`;
 	console.log(`Writing results to ${outFile}...`);
